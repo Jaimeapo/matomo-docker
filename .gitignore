@@ -1,0 +1,4 @@
+.DS_Store
+db.sql
+docker-compose-old.yml
+index.php

@@ -1,0 +1,86 @@
+version: "3.1"
+
+networks:
+  aldevenv:
+
+#Wordpress 
+services:
+  wordpress:
+    container_name: Wordpress
+    depends_on:
+      - db
+    image: wordpress:6.2.0-fpm-alpine
+    restart: always
+    volumes:
+      ['./:/var/www/html/wp-content']
+    ports:
+      - 8000:80
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+    networks:
+      - aldevenv
+
+#Wordress db
+  db:
+    container_name: WP-db 
+    image: mariadb:10.6.5-focal
+    command: --max-allowed-packet=64MB
+    restart: always
+    volumes:
+      #- ./dev/init.sql:/data/application/init.sql
+      - db_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+    ports:
+      - 3306:3306
+    networks:
+      - aldevenv
+
+#Matomo db
+  matomo-db:
+    container_name: matomo-db
+    image: mariadb:10.6.5-focal
+    command: --max-allowed-packet=64MB
+    restart: always
+    volumes:
+      - ./dev/init.sql:/data/application/init.sql
+      #- matomo_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    env_file:
+      - ./db.env
+    ports:
+      - 3307:3306
+    networks:
+      - aldevenv
+
+#Matomo
+  matomo:
+    container_name: matomo
+    depends_on:
+      - matomo-db
+    image: matomo:latest
+    restart: always
+    volumes:
+      #- matomo_data:/var/www/html
+      #- ./matomo-config:/var/www/html/config
+      - ./src/html:/var/www/html
+    ports:
+      - 8080:80
+    environment:
+      MATOMO_DATABASE_HOST: matomo-db:3306
+      MATOMO_DATABASE_USERNAME: matomo
+      MATOMO_DATABASE_PASSWORD: matomo
+      MATOMO_DATABASE_DBNAME: matomo
+    networks:
+      - aldevenv
+
+volumes:
+  db_data:
+  matomo_data:
