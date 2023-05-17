@@ -9,9 +9,7 @@ tables_prefix = "matomo_"
 charset = "utf8mb4"
 
 [General]
-enable_trusted_host_check = 0
-salt = "7638618c43fefa3191d458f5572cf20c"
-trusted_hosts[] = "localhost"
+salt = "04c897267e57bb0e41625173da7a6db7"
 trusted_hosts[] = "localhost:8080"
 
 [Plugins]
@@ -79,7 +77,10 @@ Plugins[] = "Tour"
 Plugins[] = "PagePerformance"
 Plugins[] = "CustomDimensions"
 Plugins[] = "TagManager"
+Plugins[] = "AbTesting"
+Plugins[] = "CustomDimensionsManager"
 Plugins[] = "MarketingCampaignsReporting"
+Plugins[] = "MultiChannelConversionAttribution"
 
 [PluginsInstalled]
 PluginsInstalled[] = "Diagnostics"
@@ -147,4 +148,13 @@ PluginsInstalled[] = "PagePerformance"
 PluginsInstalled[] = "CustomDimensions"
 PluginsInstalled[] = "TagManager"
 PluginsInstalled[] = "MarketingCampaignsReporting"
+PluginsInstalled[] = "AbTesting"
+PluginsInstalled[] = "CustomDimensionsManager"
+PluginsInstalled[] = "MultiChannelConversionAttribution"
+
+[MultiChannelConversionAttribution]
+default_day_prior_to_conversion = 30
+available_days_prior_to_conversion = "7,30,60,90"
+datatable_archiving_maximum_rows = 500
+datatable_archiving_maximum_rows_subtable = 500
 

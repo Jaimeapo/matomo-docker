@@ -3,6 +3,7 @@ version: "3.9"
 networks:
   aldevenv:
 
+# Wordpress
 services:
   wordpress:
     container_name: Wordpress
@@ -22,6 +23,7 @@ services:
     networks:
       - aldevenv
   mysql:
+    container_name: Wordpress-db
     image: mysql:latest
     environment:
       MYSQL_ROOT_PASSWORD: root
@@ -33,6 +35,7 @@ services:
     networks:
       - aldevenv
 
+# Matomo
   matomo-db:
     container_name: matomo-db
     image: mariadb:10.6.5-focal
