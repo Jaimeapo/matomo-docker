@@ -151,6 +151,8 @@ PluginsInstalled[] = "MarketingCampaignsReporting"
 PluginsInstalled[] = "AbTesting"
 PluginsInstalled[] = "CustomDimensionsManager"
 PluginsInstalled[] = "MultiChannelConversionAttribution"
+PluginsInstalled[] = "DBStats"
+PluginsInstalled[] = "MobileAppMeasurable"
 
 [MultiChannelConversionAttribution]
 default_day_prior_to_conversion = 30
