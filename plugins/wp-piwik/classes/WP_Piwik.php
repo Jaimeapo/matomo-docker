@@ -10,7 +10,7 @@ use WP_Piwik\Widget\Post;
  */
 class WP_Piwik {
 
-	private static $revisionId = 2022020701, $version = '1.0.27', $blog_id, $pluginBasename = NULL, $logger, $settings, $request, $optionsPageId;
+	private static $revisionId = 2023052101, $version = '1.0.28', $blog_id, $pluginBasename = NULL, $logger, $settings, $request, $optionsPageId;
 
 	/**
 	 * Constructor class to configure and register all WP-Piwik components
@@ -1152,7 +1152,12 @@ class WP_Piwik {
 				'urls' => $isCurrent ? get_bloginfo ( 'url' ) : get_blog_details ( $blogId )->siteurl,
 				'siteName' => urlencode( $isCurrent ? get_bloginfo ( 'name' ) : get_blog_details ( $blogId )->blogname )
 		) );
-		$result = (int) $this->request ( $id );
+		$result = $this->request ( $id );
+		if ( is_array( $result ) && isset( $result['value'] ) ) {
+			$result = (int) $result['value'];
+		} else {
+			$result = (int) $result;
+		}
 		self::$logger->log ( 'Create Matomo ID: WordPress site ' . ($isCurrent ? get_bloginfo ( 'url' ) : get_blog_details ( $blogId )->siteurl) . ' = Matomo ID ' . $result );
 		if (empty ( $result ))
 			return null;
@@ -1319,7 +1324,7 @@ class WP_Piwik {
 	 * Get option value, choose method depending on network mode
 	 *
 	 * @param string $option option key
-	 * @return string option value
+	 * @return string|array option value
 	 */
 	private function getWordPressOption($option, $default = null) {
 		return ($this->isNetworkMode () ? get_site_option ( $option, $default ) : get_option ( $option, $default ));

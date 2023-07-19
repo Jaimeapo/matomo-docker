@@ -260,7 +260,13 @@ class Settings extends \WP_Piwik\Admin {
 
 		$this->showInput ( 'add_download_extensions', __ ( 'Add new file types for download tracking', 'wp-piwik' ), __ ( 'Add file extensions for download tracking, divided by a vertical bar (&#124;).', 'wp-piwik' ) . ' ' . sprintf ( __ ( 'See %sMatomo documentation%s.', 'wp-piwik' ), '<a href="https://developer.piwik.org/guides/tracking-javascript-guide#file-extensions-for-tracking-downloads" target="_BLANK">', '</a>' ), $isNotGeneratedTracking, $fullGeneratedTrackingGroup );
 
-		$this->showCheckbox ( 'disable_cookies', __ ( 'Disable cookies', 'wp-piwik' ), __ ( 'Disable all tracking cookies for a visitor.', 'wp-piwik' ), $isNotGeneratedTracking, $fullGeneratedTrackingGroup );
+        $this->showSelect ( 'require_consent', __ ( 'Tracking or cookie consent', 'wp-piwik' ), array (
+            'disabled' => __ ( 'Disabled', 'wp-piwik' ),
+            'consent' => __ ( 'Require consent', 'wp-piwik' ),
+            'cookieconsent' => __ ( 'Require cookie consent', 'wp-piwik' )
+        ), __ ( 'Enable support for consent managers.' ) . ' ' . sprintf ( __ ( 'See %sMatomo documentation%s.', 'wp-piwik' ), '<a href="https://developer.matomo.org/guides/tracking-consent" target="_BLANK">', '</a>' ), '', $isNotGeneratedTracking, $fullGeneratedTrackingGroup );
+
+        $this->showCheckbox ( 'disable_cookies', __ ( 'Disable cookies', 'wp-piwik' ), __ ( 'Disable all tracking cookies for a visitor.', 'wp-piwik' ), $isNotGeneratedTracking, $fullGeneratedTrackingGroup );
 
 		$this->showCheckbox ( 'limit_cookies', __ ( 'Limit cookie lifetime', 'wp-piwik' ), __ ( 'You can limit the cookie lifetime to avoid tracking your users over a longer period as necessary.', 'wp-piwik' ), $isNotGeneratedTracking, $fullGeneratedTrackingGroup, true, 'jQuery(\'tr.wp-piwik-cookielifetime-option\').toggleClass(\'wp-piwik-hidden\');' );
 
@@ -527,9 +533,6 @@ class Settings extends \WP_Piwik\Admin {
 		<?php _e('If you like WP-Matomo, you can support its development by a donation:', 'wp-piwik'); ?>
 	</p>
 	<div>
-		<script id='fb0ahsp'>(function(i){var f,s=document.getElementById(i);f=document.createElement('iframe');f.src='//button.flattr.com/view/?fid=mkdp7z&url=https%3A%2F%2Fwww.braekling.de%2Fwp-piwik-wpmu-piwik-wordpress';f.title='Flattr';f.height=62;f.width=55;f.style.borderWidth=0;s.parentNode.insertBefore(f,s);})('fb0ahsp');</script>
-	</div>
-	<div>
 		Paypal
 		<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
 			<input type="hidden" name="cmd" value="_s-xclick" />
@@ -544,9 +547,6 @@ class Settings extends \WP_Piwik\Admin {
 	</div>
 	<div>
 		<a href="http://www.amazon.de/gp/registry/wishlist/111VUJT4HP1RA?reveal=unpurchased&amp;filter=all&amp;sort=priority&amp;layout=standard&amp;x=12&amp;y=14"><?php _e('My Amazon.de wishlist', 'wp-piwik'); ?></a>
-	</div>
-	<div>
-		<?php _e('Please don\'t forget to vote the compatibility at the','wp-piwik'); ?> <a target="_BLANK" href="http://wordpress.org/extend/plugins/wp-piwik/">WordPress.org Plugin Directory</a>.
 	</div>
 </div><?php
 	}

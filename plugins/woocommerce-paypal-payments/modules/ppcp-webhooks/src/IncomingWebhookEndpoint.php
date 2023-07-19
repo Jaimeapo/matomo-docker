@@ -17,12 +17,14 @@ use WooCommerce\PayPalCommerce\ApiClient\Exception\RuntimeException;
 use WooCommerce\PayPalCommerce\ApiClient\Factory\WebhookEventFactory;
 use WooCommerce\PayPalCommerce\Webhooks\Handler\RequestHandler;
 use Psr\Log\LoggerInterface;
+use WooCommerce\PayPalCommerce\Webhooks\Handler\RequestHandlerTrait;
 use WooCommerce\PayPalCommerce\Webhooks\Status\WebhookSimulation;
 
 /**
  * Class IncomingWebhookEndpoint
  */
 class IncomingWebhookEndpoint {
+	use RequestHandlerTrait;
 
 	const NAMESPACE = 'paypal/v1';
 	const ROUTE     = 'incoming';
@@ -82,6 +84,14 @@ class IncomingWebhookEndpoint {
 	 * @var WebhookEventStorage
 	 */
 	private $last_webhook_event_storage;
+
+	/**
+	 * Cached webhook verification results
+	 * to avoid repeating requests when permission_callback is called multiple times.
+	 *
+	 * @var array<string, bool>
+	 */
+	private $verification_results = array();
 
 	/**
 	 * IncomingWebhookEndpoint constructor.
@@ -160,7 +170,17 @@ class IncomingWebhookEndpoint {
 
 		try {
 			$event = $this->event_from_request( $request );
+		} catch ( RuntimeException $exception ) {
+			$this->logger->error( 'Webhook parsing failed: ' . $exception->getMessage() );
+			return false;
+		}
 
+		$cache_key = $event->id();
+		if ( isset( $this->verification_results[ $cache_key ] ) ) {
+			return $this->verification_results[ $cache_key ];
+		}
+
+		try {
 			if ( $this->simulation->is_simulation_event( $event ) ) {
 				return true;
 			}
@@ -169,9 +189,11 @@ class IncomingWebhookEndpoint {
 			if ( ! $result ) {
 				$this->logger->error( 'Webhook verification failed.' );
 			}
+			$this->verification_results[ $cache_key ] = $result;
 			return $result;
 		} catch ( RuntimeException $exception ) {
 			$this->logger->error( 'Webhook verification failed: ' . $exception->getMessage() );
+			$this->verification_results[ $cache_key ] = false;
 			return false;
 		}
 	}
@@ -191,26 +213,16 @@ class IncomingWebhookEndpoint {
 		if ( $this->simulation->is_simulation_event( $event ) ) {
 			$this->logger->info( 'Received simulated webhook.' );
 			$this->simulation->receive( $event );
-			return rest_ensure_response(
-				array(
-					'success' => true,
-				)
-			);
+			return $this->success_response();
 		}
 
 		foreach ( $this->handlers as $handler ) {
 			if ( $handler->responsible_for_request( $request ) ) {
 				$response = $handler->handle_request( $request );
-				$this->logger->log(
-					'info',
+				$this->logger->info(
 					sprintf(
-						// translators: %s is the event type.
-						__( 'Webhook has been handled by %s', 'woocommerce-paypal-payments' ),
+						'Webhook has been handled by %s',
 						( $handler->event_types() ) ? current( $handler->event_types() ) : ''
-					),
-					array(
-						'request'  => $request,
-						'response' => $response,
 					)
 				);
 				return $response;
@@ -218,22 +230,10 @@ class IncomingWebhookEndpoint {
 		}
 
 		$message = sprintf(
-			// translators: %s is the request type.
-			__( 'Could not find handler for request type %s', 'woocommerce-paypal-payments' ),
-			$request['event_type']
+			'Could not find handler for request type %s',
+			$request['event_type'] ?: ''
 		);
-		$this->logger->log(
-			'warning',
-			$message,
-			array(
-				'request' => $request,
-			)
-		);
-		$response = array(
-			'success' => false,
-			'message' => $message,
-		);
-		return rest_ensure_response( $response );
+		return $this->failure_response( $message );
 	}
 
 	/**

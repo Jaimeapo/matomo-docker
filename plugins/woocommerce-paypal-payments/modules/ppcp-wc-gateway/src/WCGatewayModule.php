@@ -13,6 +13,7 @@ use Psr\Log\LoggerInterface;
 use Throwable;
 use WooCommerce\PayPalCommerce\ApiClient\Exception\RuntimeException;
 use WooCommerce\PayPalCommerce\ApiClient\Helper\Cache;
+use WooCommerce\PayPalCommerce\Subscription\Helper\SubscriptionHelper;
 use WooCommerce\PayPalCommerce\Vendor\Dhii\Container\ServiceProvider;
 use WooCommerce\PayPalCommerce\Vendor\Dhii\Modular\Module\ModuleInterface;
 use WC_Order;
@@ -38,6 +39,7 @@ use WooCommerce\PayPalCommerce\WcGateway\Helper\PayUponInvoiceProductStatus;
 use WooCommerce\PayPalCommerce\WcGateway\Helper\SettingsStatus;
 use WooCommerce\PayPalCommerce\WcGateway\Notice\ConnectAdminNotice;
 use WooCommerce\PayPalCommerce\WcGateway\Notice\GatewayWithoutPayPalAdminNotice;
+use WooCommerce\PayPalCommerce\WcGateway\Notice\UnsupportedCurrencyAdminNotice;
 use WooCommerce\PayPalCommerce\WcGateway\Processor\AuthorizedPaymentsProcessor;
 use WooCommerce\PayPalCommerce\WcGateway\Settings\HeaderRenderer;
 use WooCommerce\PayPalCommerce\WcGateway\Settings\SectionsRenderer;
@@ -196,6 +198,13 @@ class WCGatewayModule implements ModuleInterface {
 					$notices[] = $connect_message;
 				}
 
+				$notice = $c->get( 'wcgateway.notice.currency-unsupported' );
+				assert( $notice instanceof UnsupportedCurrencyAdminNotice );
+				$unsupported_currency_message = $notice->unsupported_currency_message();
+				if ( $unsupported_currency_message ) {
+					$notices[] = $unsupported_currency_message;
+				}
+
 				foreach ( array(
 					$c->get( 'wcgateway.notice.dcc-without-paypal' ),
 					$c->get( 'wcgateway.notice.card-button-without-paypal' ),
@@ -277,6 +286,15 @@ class WCGatewayModule implements ModuleInterface {
 				$settings->set( 'products_dcc_enabled', false );
 				$settings->set( 'products_pui_enabled', false );
 				$settings->persist();
+
+				// Update caches.
+				$dcc_status = $c->get( 'wcgateway.helper.dcc-product-status' );
+				assert( $dcc_status instanceof DCCProductStatus );
+				$dcc_status->dcc_is_active();
+
+				$pui_status = $c->get( 'wcgateway.pay-upon-invoice-product-status' );
+				assert( $pui_status instanceof PayUponInvoiceProductStatus );
+				$pui_status->pui_is_active();
 			}
 		);
 
@@ -320,14 +338,6 @@ class WCGatewayModule implements ModuleInterface {
 			},
 			10,
 			2
-		);
-
-		add_action(
-			'wc_ajax_ppc-oxxo',
-			static function () use ( $c ) {
-				$endpoint = $c->get( 'wcgateway.endpoint.oxxo' );
-				$endpoint->handle_request();
-			}
 		);
 
 		add_action(
@@ -380,6 +390,13 @@ class WCGatewayModule implements ModuleInterface {
 			10,
 			3
 		);
+
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			\WP_CLI::add_command(
+				'pcp settings',
+				$c->get( 'wcgateway.cli.settings.command' )
+			);
+		}
 	}
 
 	/**
@@ -615,7 +632,7 @@ class WCGatewayModule implements ModuleInterface {
 				 * @var OrderTablePaymentStatusColumn $payment_status_column
 				 */
 				$payment_status_column = $container->get( 'wcgateway.admin.orders-payment-status-column' );
-				$payment_status_column->render( $column, intval( $wc_order_id ) );
+				$payment_status_column->render( (string) $column, intval( $wc_order_id ) );
 			},
 			10,
 			2
