@@ -69,7 +69,7 @@ services:
       - matomo-db
     restart: always
     volumes:
-      - matomo_data:/var/www/html  # Persist Matomo user data
+      - ./src/html:/var/www/html
     ports:
       - 8080:80
     environment:
