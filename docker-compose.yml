@@ -3,14 +3,16 @@ version: "3.9"
 networks:
   aldevenv:
 
-# Wordpress
 services:
+  # WordPress 
   wordpress:
     container_name: Wordpress
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.wordpress
     restart: always
     volumes:
-      - './:/var/www/html/wp-content'
+      - wordpress_data:/var/www/html/wp-content
     environment:
       WORDPRESS_DB_HOST: mysql
       WORDPRESS_DB_USER: wordpress
@@ -22,6 +24,8 @@ services:
       - mysql
     networks:
       - aldevenv
+
+  # MySQL for WordPress service definition 
   mysql:
     container_name: Wordpress-db
     image: mysql:latest
@@ -35,16 +39,19 @@ services:
     networks:
       - aldevenv
 
-# Matomo
+  # Matomo database service definition
   matomo-db:
     container_name: matomo-db
     image: mariadb:10.6.5-focal
     command: --max-allowed-packet=64MB
     restart: always
     volumes:
-      - ./dev/init.sql:/data/application/init.sql
+      - matomo_db_data:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: matomo
+      MYSQL_USER: matomo
+      MYSQL_PASSWORD: matomo
     env_file:
       - ./db.env
     ports:
@@ -52,14 +59,17 @@ services:
     networks:
       - aldevenv
 
+  # Updated Matomo service to build from a Dockerfile...
   matomo:
     container_name: matomo
+    build:
+      context: .
+      dockerfile: Dockerfile.matomo
     depends_on:
       - matomo-db
-    image: matomo:latest
     restart: always
     volumes:
-      - ./src/html:/var/www/html
+      - matomo_data:/var/www/html  # Persist Matomo user data
     ports:
       - 8080:80
     environment:
@@ -71,4 +81,7 @@ services:
       - aldevenv
 
 volumes:
-  db_data:
+  db_data:    # Used for WordPress database
+  matomo_db_data:  # Used for Matomo database
+  wordpress_data:  # Used for WordPress data
+  matomo_data:     # Used for Matomo data
