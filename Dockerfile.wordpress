@@ -4,7 +4,7 @@ FROM wordpress:latest
 # Update and install necessary packages
 RUN apt-get update && \
     apt-get upgrade -y && \
-    apt-get install -y vim wget mariadb-client unzip && \
+    apt-get install -y vim wget mariadb-client && \
     apt-get autoremove -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
@@ -21,22 +21,6 @@ COPY php.ini /usr/local/etc/php
 # Remove development and production PHP INI files
 RUN rm /usr/local/etc/php/php.ini-development && \
     rm /usr/local/etc/php/php.ini-production
-
-# Download and install the latest version of Matomo
-RUN cd /var/www && \
-    wget https://builds.matomo.org/matomo-latest.zip && \
-    unzip matomo-latest.zip && \
-    rm matomo-latest.zip && \
-    chown -R www-data:www-data matomo
-
-# Ensure both WordPress and Matomo have the necessary write permissions
-RUN chown -R www-data:www-data /var/www/html && \
-    chown -R www-data:www-data /var/www/matomo
-
-# Add a custom Apache configuration for Matomo
-# Ensure that matomo.conf is in the context of your build
-COPY matomo.conf /etc/apache2/sites-available/
-RUN a2ensite matomo.conf
 
 # Expose port 80
 EXPOSE 80
