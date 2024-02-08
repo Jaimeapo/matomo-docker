@@ -1,0 +1,10 @@
+# Ignore the src/html directory
+src/html/
+src/html/vendor/
+
+# OSX system files
+.DS_Store
+
+# Logs
+logs/
+*.log
