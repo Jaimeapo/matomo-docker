@@ -30,4 +30,3 @@ Acess to Matomo: http://localhost:8080
 
 * backup config.ini.php
 * backup db
-* certificates
