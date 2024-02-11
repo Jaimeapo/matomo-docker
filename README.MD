@@ -6,6 +6,16 @@ Wordpress Woocommerce
 
 Backup your `src/html/config/config.ini.php` and delete from this folder
 
+Install [mkcert](https://github.com/FiloSottile/mkcert#installation)
+
+Install local ROOT CA
+
+```
+cd local-ssl
+export CAROOT=$(pwd)
+mkcert -install
+```
+
 run 
 ```install.sh```
 > it will run 
