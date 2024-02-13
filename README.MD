@@ -2,7 +2,7 @@
 
 Local test environment with 
 Matomo last version
-Wordpress Woocommerce
+Wordpress Woocommerce (needs to be installed manually)
 
 Backup your `src/html/config/config.ini.php` and delete from this folder
 
@@ -30,3 +30,4 @@ Acess to Matomo: http://localhost:8080
 
 * backup config.ini.php
 * backup db
+* Woocommerce instalation 

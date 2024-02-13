@@ -13,6 +13,7 @@ services:
     restart: always
     volumes:
       - wordpress_data:/var/www/html/wp-content
+      - ./local-ssl:/etc/ssl/certs:ro
     environment:
       WORDPRESS_DB_HOST: mysql
       WORDPRESS_DB_USER: wordpress
@@ -70,8 +71,10 @@ services:
     restart: always
     volumes:
       - ./src/html:/var/www/html
+      - ./local-ssl:/etc/ssl/certs:ro
     ports:
       - 8080:80
+      - 8443:443
     environment:
       MATOMO_DATABASE_HOST: matomo-db:3306
       MATOMO_DATABASE_USERNAME: matomo

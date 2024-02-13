@@ -6,3 +6,4 @@ src/html/
 src/html/tmp/*
 src/html/plugins/
 uploads/*
+*.pem
